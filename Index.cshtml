@@ -1,0 +1,66 @@
+﻿@using WebMatrix.Data
+<style>
+    body {
+        background-color:burlywood
+    }
+</style>
+<div class="jumbotron pt-1 pb-1 text-center mt-2">
+    <h2 class="text-center text-bg-light">Product Detail</h2>
+</div>
+<div class="row justify-content-center">
+    <div class="col-7">
+        <form method="get">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Search wine by name" name="searchName">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </div>
+            </div>
+        </form>
+
+        @{
+            var db1 = Database.Open("wine");
+            var productSql = "SELECT * FROM Wine";
+
+            var searchName = Request.QueryString["searchName"];
+            if (!String.IsNullOrEmpty(searchName))
+            {
+                productSql = "SELECT * FROM Wine WHERE name LIKE @0";
+            }
+
+            var products = db1.Query(productSql, "%" + searchName + "%");
+
+            if (products.Count() > 0)
+            {
+                foreach (var product in products)
+                {
+                    var productName = product.name;
+                    var ratingSql = "SELECT AVG(reviews_rating) AS AverageRating, COUNT(*) AS CommentCount FROM Reviews WHERE name=@0";
+                    var ratingInfo = db1.QuerySingle(ratingSql, productName);
+
+                    <div class="card mb-3">
+                        <img src="@product.image" class="card-img-top" alt="@product.name image">
+                        <div class="card-body">
+                            <h5 class="card-title">@product.name</h5>
+                            <p class="card-text">@product.description</p>
+                            <p class="card-text">Price: @product.price @product.currency</p>
+                            <p class="card-text">Country: @product.Country</p>
+                            <p class="card-text">( Average Rating: @ratingInfo.AverageRating Number of Comments: @ratingInfo.CommentCount )</p>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <h2 class="text-bg-danger text-center"> Oop! No items found in the list.</h2>
+            }
+        }
+    </div>
+</div>
+
+
+
+
+
+
+
